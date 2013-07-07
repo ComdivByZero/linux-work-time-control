@@ -8,13 +8,45 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+typedef enum {
+	PT_UNDEFINED,
+	PT_INTEGER,
+	PT_STRING
+} ParameterType;
+
 typedef struct {
 	int yday, rest;
 } Data;
 
+typedef struct {
+	char *name;
+	int value;
+} ParameterInteger;
+
+typedef struct {
+	char *name;
+	char *value;
+} ParameterString;
+
+typedef struct {
+
+	char *name;
+	union
+} Parameter;
+
+typedef struct {
+	int dayLimitSoft,
+		dayLimitHard,
+		timeBeforeWarningLimitSoft,
+		timeRepeatWarning;
+		/* time to end in minutes when warning will be show */
+	char *msgWarningLimitSoft,
+		*msg;
+} Config;
+
 static int readConfig(const char *home) {
 	FILE *f;
-	char buf[1024];
+	char buf[1024 * 4];
 	int ret;
 	snprintf(buf, sizeof(buf), "%s/.parcon/config", home);
 	f = fopen(buf, "r");
@@ -24,6 +56,8 @@ static int readConfig(const char *home) {
 	} else {
 		if (fscanf(f, "%d", &ret) <= 0) {
 			ret = -1;
+		} else {
+			fscanf(f, "%s\n", );
 		}
 		fclose(f);
 	}
@@ -107,6 +141,7 @@ static void prepare(int minutes) {
 		} else {
 			printf("Create configuration file %s\n", buf);
 			fprintf(f, "%d\n", minutes);
+			fclose(f);
 		}
 	}
 }
@@ -114,7 +149,7 @@ static void prepare(int minutes) {
 extern int main(int argc, char *argv[]) {
 	int minutes;
 	if (argc > 1) {
-		if (strcmp(argv[1], "-h")) {
+		if (strcmp(argv[1], "-h") == 0) {
 			printf("Yet not writed\n");
 		} else {
 			minutes = atoi(argv[1]);
