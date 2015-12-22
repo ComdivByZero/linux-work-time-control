@@ -29,9 +29,7 @@ typedef struct {
 } ParameterString;
 
 typedef struct {
-
 	char *name;
-	union
 } Parameter;
 
 typedef struct {
@@ -41,7 +39,7 @@ typedef struct {
 		timeRepeatWarning;
 		/* time to end in minutes when warning will be show */
 	char *msgWarningLimitSoft,
-		*msg;
+		 *msgWarning;
 } Config;
 
 static int readConfig(const char *home) {
@@ -56,8 +54,6 @@ static int readConfig(const char *home) {
 	} else {
 		if (fscanf(f, "%d", &ret) <= 0) {
 			ret = -1;
-		} else {
-			fscanf(f, "%s\n", );
 		}
 		fclose(f);
 	}
@@ -92,10 +88,16 @@ static FILE* openAndReadData(const char *home, int yday, Data *data) {
 }
 
 static void logout(void) {
-	system("gnome-session-quit --logout --no-prompt --force");
-	system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0");/* without testing */
+	if (0 != system("gnome-session-quit --logout --no-prompt --force")) {
+		fprintf(stderr, "Can not quit by gnome-session-quit\n");
+	}
+	if (0 != system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")) {
+		fprintf(stderr, "Can not quit by qdbus org.kde.ksmserver\n");/* without testing */
+	}
 	if (strncmp(getenv("XDG_CURRENT_DESKTOP"), "XFCE", 4) == 0) {
-		system("xfce4-session-logout --logout");
+		if (0 != system("xfce4-session-logout --logout")) {
+			fprintf(stderr, "Can not quit by xfce4-session-logout\n");
+		}
 	}
 	printf("logout\n");
 }
@@ -116,9 +118,13 @@ static void control(void) {
 			fflush(f);
 		}
 		if (data.rest == TIME_SOON_END) {
-			system("notify-send '"MESSAGE_SOON_END"'");
+			if (0 != system("notify-send '"MESSAGE_SOON_END"'")) {
+				fprintf(stderr, "Can not warn by message\n");
+			}
 			if (SOUND_SOON_END[0] != '\0') {
-				system("playsound "SOUND_SOON_END);
+				if (0 != system("playsound "SOUND_SOON_END)) {
+					fprintf(stderr, "Can not warn by sound\n");
+				}
 			}
 		}
 	}
